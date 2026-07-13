@@ -339,18 +339,49 @@ img { max-width: 100%; display: block; }
 .menu-card__price { font-weight: 800; color: var(--text); font-size: 1.2rem; letter-spacing: -0.02em; }
 .menu-card__price::first-letter { color: var(--primary); }
 
-/* ---------- Language switcher ---------- */
-.lang-switch {
-    display: inline-flex; align-items: center; gap: 2px;
-    background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 2px;
+/* ---------- Language switcher (globe + dropdown) ---------- */
+.lang-switch { position: relative; display: inline-block; }
+.lang-switch > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 38px; padding: 0 12px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text); font-size: .84rem; font-weight: 700; line-height: 1;
+    transition: border-color .16s var(--ease), background .16s var(--ease);
 }
-.lang-opt {
-    padding: 5px 9px; border-radius: 999px; font-size: .78rem; font-weight: 700; line-height: 1;
-    color: var(--text-muted); white-space: nowrap; transition: background .16s var(--ease), color .16s var(--ease);
+.lang-switch > summary::-webkit-details-marker { display: none; }   /* hide native ▸ */
+.lang-switch > summary:hover { border-color: var(--primary); }
+.lang-globe { font-size: 1.05rem; }
+.lang-caret { font-size: .7rem; color: var(--text-muted); transition: transform .18s var(--ease); }
+.lang-switch[open] > summary { border-color: var(--primary); }
+.lang-switch[open] .lang-caret { transform: rotate(180deg); }
+
+.lang-menu {
+    position: absolute; right: 0; top: calc(100% + 8px); z-index: 200;
+    min-width: 190px; padding: 6px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow-lg, 0 20px 45px -18px rgba(0,0,0,.45));
+    animation: langPop .16s var(--ease, ease);
 }
-.lang-opt:hover { color: var(--text); }
-.lang-opt.is-active { background: var(--primary); color: #fff; }
+@keyframes langPop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.lang-item {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px;
+    color: var(--text); font-size: .92rem; font-weight: 600;
+}
+.lang-item:hover { background: var(--surface-2); }
+.lang-item.is-active { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+.lang-item__name { flex: 1; }
+.lang-item__code { font-size: .78rem; font-weight: 700; color: var(--text-muted); }
+.lang-item.is-active .lang-item__code { color: var(--primary); }
+.lang-item__check { color: var(--primary); font-weight: 800; }
 :lang(km) { font-family: "Khmer OS", "Khmer OS System", "Leelawadee UI", "Noto Sans Khmer", var(--font, system-ui), sans-serif; }
+
+/* On phones the menu opens from the bottom edge and is easy to tap */
+@media (max-width: 600px) {
+    .lang-switch > summary { height: 40px; padding: 0 12px; }
+    .lang-menu { min-width: 200px; }
+    .lang-item { padding: 12px; }
+}
 
 /* ---------- Discounts / prices ---------- */
 .price-wrap { display: inline-flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
