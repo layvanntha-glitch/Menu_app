@@ -1,0 +1,9 @@
+# This folder is a command-line bot, not web pages.
+# Block all web access (protects the bot token and prevents the polling
+# loop from being triggered by an HTTP request).
+Require all denied
+
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

@@ -1,0 +1,6 @@
+# Security: never execute scripts from the uploads folder.
+# Even if someone sneaks a .php file in, Apache will not run it here.
+php_flag engine off
+<FilesMatch "\.(php|phtml|php3|php4|php5|pl|py|cgi|asp|sh)$">
+    Require all denied
+</FilesMatch>

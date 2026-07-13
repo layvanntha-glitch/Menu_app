@@ -1,0 +1,20 @@
+# ---- Secrets (NEVER commit) ----
+telegram/.token
+telegram/.miniapp_url
+
+# ---- Runtime data (customer orders, accounts) — auto-created on first run ----
+/data/*
+!/data/.htaccess
+
+# ---- User uploads (regenerated per install) ----
+/uploads/*
+!/uploads/.htaccess
+
+# ---- Local tooling / editor / OS ----
+.claude/
+.qodo/
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+*.log
