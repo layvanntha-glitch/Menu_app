@@ -133,6 +133,37 @@ See `telegram/README.md` for more detail.
 
 ---
 
+## 📱 Testing on your phone
+
+Your phone can't open `localhost` (that means "this PC"). Use one of these:
+
+### Option A — same Wi‑Fi (quickest, no tunnel)
+1. Make sure the phone is on the **same Wi‑Fi** as the PC running Apache.
+2. Find the PC's IPv4: run `ipconfig` and look for the Wi‑Fi adapter (e.g. `192.168.0.113`).
+3. On the phone open `http://<that-ip>/menu/` (e.g. `http://192.168.0.113/menu/`).
+   > If it doesn't load, allow Apache through **Windows Firewall** once (Private networks).
+
+### Option B — public HTTPS tunnel (needed for the Telegram Mini App)
+The Telegram Mini App and the invoice links in bot messages require a public **HTTPS** URL.
+Just run the included one-click helper:
+
+```
+telegram/start_tunnel.bat
+```
+
+It starts a Cloudflare tunnel and **automatically**:
+- writes the new URL into `telegram/.miniapp_url`, and
+- re-points the Telegram **🍽 Open Menu** button to it.
+
+Leave the window open while you test. The public URL is printed in the window; open it on the
+phone, or tap **🍽 Open Menu** inside the bot.
+
+> ⚠️ Free quick-tunnel URLs rotate every time the tunnel restarts. If the phone stops loading
+> later, just run `start_tunnel.bat` again — it re-links everything. For a permanent fixed URL,
+> use a **named** Cloudflare tunnel (a real domain) instead.
+
+---
+
 ## 📁 Project structure
 
 ```
@@ -154,7 +185,8 @@ menu/
 ├── uploads/                   # uploaded menu images (script execution blocked)
 ├── data/                      # tasty_bites.sqlite (web access blocked) — git-ignored
 ├── sql/                       # schema_sqlite.sql + bootstrap_sqlite.php (schema/seed/migrate)
-├── telegram/                  # bot.php, .token (ignored), .miniapp_url (ignored), start_bot.bat
+├── telegram/                  # bot.php, start_bot.bat, start_tunnel.bat + tunnel.php,
+│                              #   .token & .miniapp_url (both git-ignored)
 ├── index.php  cart.php  checkout.php  order_confirmation.php  invoice.php
 ├── food.php  favorites.php  account.php  login.php  register.php  logout.php
 └── setup_sqlite.php           # optional scripted installer
