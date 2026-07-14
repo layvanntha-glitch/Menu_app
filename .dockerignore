@@ -1,0 +1,10 @@
+# Keep secrets and local state out of the image.
+.git
+.gitignore
+data/
+telegram/.token
+telegram/.miniapp_url
+uploads/*
+!uploads/.htaccess
+*.log
+propt.md
