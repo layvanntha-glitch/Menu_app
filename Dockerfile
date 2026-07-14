@@ -12,8 +12,12 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# Apache: allow .htaccess (uploads/data protection) + redirect / -> /menu/
-RUN a2enmod rewrite
+# Apache: force a single MPM (prefork, required by mod_php) to avoid the
+# "More than one MPM loaded" startup crash on fresh base images, then enable
+# rewrite for .htaccess (uploads/data protection) + redirect / -> /menu/.
+RUN a2dismod mpm_event 2>/dev/null || true; \
+    a2dismod mpm_worker 2>/dev/null || true; \
+    a2enmod mpm_prefork rewrite
 COPY docker/app.conf /etc/apache2/conf-available/tasty.conf
 RUN a2enconf tasty
 
