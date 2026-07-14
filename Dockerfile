@@ -1,6 +1,8 @@
 # Tasty Bites — PHP 8 + Apache, single container (web + Telegram bot poller).
 # Keeps SQLite + uploads on a persistent volume mounted at /data.
-FROM php:8.2-apache
+# Base pinned by digest so every builder (incl. Railway) uses the exact,
+# prefork-only image this was tested against — tag drift caused a two-MPM crash.
+FROM php:8.2-apache@sha256:abef6f94ae3059d10995953e7d53359a2a4654d95fa09ec6b918db6cb9686f55
 
 # --- PHP extensions the app uses: pdo_sqlite, gd (image uploads), mbstring ---
 RUN set -eux; \
@@ -12,11 +14,10 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# Apache: force a single MPM (prefork, required by mod_php) to avoid the
-# "More than one MPM loaded" startup crash on fresh base images, then enable
-# rewrite for .htaccess (uploads/data protection) + redirect / -> /menu/.
-RUN a2dismod mpm_event 2>/dev/null || true; \
-    a2dismod mpm_worker 2>/dev/null || true; \
+# Apache: force exactly ONE MPM (prefork, required by mod_php). Delete every
+# MPM symlink first (a2dismod refuses to remove the active MPM), then enable
+# only prefork. Also enable rewrite for .htaccess + the / -> /menu/ redirect.
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf; \
     a2enmod mpm_prefork rewrite
 COPY docker/app.conf /etc/apache2/conf-available/tasty.conf
 RUN a2enconf tasty
