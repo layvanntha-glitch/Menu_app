@@ -6,6 +6,17 @@ set -e
 APP=/var/www/html/menu
 : "${PORT:=80}"
 
+# --- Apache: guarantee exactly ONE MPM (prefork) at runtime -----------------
+# Some builders (e.g. Railway) ship an image where a second MPM is still
+# enabled, causing "More than one MPM loaded". Fixing it here — in the
+# container that actually runs — is reliable regardless of how it was built.
+rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf 2>/dev/null || true
+a2enmod mpm_prefork >/dev/null 2>&1 || true
+# Neutralize any stray MPM LoadModule that lives outside mods-enabled.
+for f in $(grep -rl 'LoadModule mpm_\(event\|worker\)_module' /etc/apache2 2>/dev/null); do
+    sed -ri 's/^([[:space:]]*)LoadModule mpm_(event|worker)_module/\1#LoadModule mpm_\2_module/' "$f"
+done
+
 # --- Apache: listen on the platform-provided port ---------------------------
 sed -ri "s/^Listen 80$/Listen ${PORT}/" /etc/apache2/ports.conf
 sed -ri "s/:80>/:${PORT}>/" /etc/apache2/sites-available/000-default.conf
