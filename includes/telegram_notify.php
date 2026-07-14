@@ -28,6 +28,22 @@ function tg_bot_token(): ?string
 }
 
 /**
+ * A CA bundle path for cURL, or '' to leave CURLOPT_CAINFO unset so cURL uses
+ * the system CA store. Prefers php.ini's curl.cainfo, then XAMPP's Windows
+ * bundle if present. On Linux hosts (e.g. Railway) this returns '' and the
+ * system certificates are used automatically.
+ */
+function tg_ca_bundle(): string
+{
+    $ca = ini_get('curl.cainfo');
+    if ($ca && is_file($ca)) {
+        return $ca;
+    }
+    $win = 'C:\\xampp\\apache\\bin\\curl-ca-bundle.crt';
+    return is_file($win) ? $win : '';
+}
+
+/**
  * Validate Telegram Mini App initData and return the user array (id, name, …)
  * or null if it is missing/invalid. Implements Telegram's documented check.
  */
@@ -100,7 +116,7 @@ function tg_send(string $chatId, string $text, ?array $replyMarkup = null): bool
     if (!$token || $chatId === '') {
         return false;
     }
-    $ca = ini_get('curl.cainfo') ?: 'C:\\xampp\\apache\\bin\\curl-ca-bundle.crt';
+    $ca = tg_ca_bundle();
 
     $fields = [
         'chat_id' => $chatId,
@@ -111,13 +127,14 @@ function tg_send(string $chatId, string $text, ?array $replyMarkup = null): bool
     }
 
     $ch = curl_init('https://api.telegram.org/bot' . $token . '/sendMessage');
-    curl_setopt_array($ch, [
+    $opts = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query($fields),
         CURLOPT_TIMEOUT        => 8,
-        CURLOPT_CAINFO         => $ca,
-    ]);
+    ];
+    if ($ca !== '') { $opts[CURLOPT_CAINFO] = $ca; }
+    curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
     curl_close($ch);
     if ($raw === false) {

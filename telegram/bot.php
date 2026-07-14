@@ -41,7 +41,11 @@ if ($TOKEN === '') {
 }
 
 define('API', 'https://api.telegram.org/bot' . $TOKEN . '/');
-$CA = ini_get('curl.cainfo') ?: 'C:\\xampp\\apache\\bin\\curl-ca-bundle.crt';
+// Use the configured/system CA store. Only fall back to XAMPP's Windows cert
+// bundle if it actually exists — on Linux hosts (e.g. Railway) cURL uses the
+// system CA store automatically when CURLOPT_CAINFO is left unset.
+$WIN_CA = 'C:\\xampp\\apache\\bin\\curl-ca-bundle.crt';
+$CA = ini_get('curl.cainfo') ?: (is_file($WIN_CA) ? $WIN_CA : '');
 
 // ---------- Optional Mini App (Web App) URL ----------
 // Telegram Mini Apps must be served over PUBLIC HTTPS — http://localhost will
@@ -75,13 +79,14 @@ function tg(string $method, array $params = [])
 {
     global $CA;
     $ch = curl_init(API . $method);
-    curl_setopt_array($ch, [
+    $opts = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query($params),
         CURLOPT_TIMEOUT        => 65,
-        CURLOPT_CAINFO         => $CA,
-    ]);
+    ];
+    if ($CA !== '') { $opts[CURLOPT_CAINFO] = $CA; }
+    curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
     if ($raw === false) {
         fwrite(STDERR, 'curl error: ' . curl_error($ch) . "\n");

@@ -58,7 +58,7 @@ function set_menu_button(string $url): bool
 {
     $token = tg_bot_token();
     if (!$token) { return false; }
-    $ca = ini_get('curl.cainfo') ?: 'C:\\xampp\\apache\\bin\\curl-ca-bundle.crt';
+    $ca = tg_ca_bundle();
     $payload = json_encode([
         'menu_button' => [
             'type'    => 'web_app',
@@ -67,14 +67,15 @@ function set_menu_button(string $url): bool
         ],
     ]);
     $ch = curl_init('https://api.telegram.org/bot' . $token . '/setChatMenuButton');
-    curl_setopt_array($ch, [
+    $opts = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_POSTFIELDS     => $payload,
         CURLOPT_TIMEOUT        => 10,
-        CURLOPT_CAINFO         => $ca,
-    ]);
+    ];
+    if ($ca !== '') { $opts[CURLOPT_CAINFO] = $ca; }
+    curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
     curl_close($ch);
     return $raw !== false && (bool) (json_decode($raw, true)['ok'] ?? false);
